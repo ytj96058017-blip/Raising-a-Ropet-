@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>초등 2학년 2학기 수학 탐험 & 로펫 키우기</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tone.js for kid-friendly sound effects -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+  <!-- Canvas Confetti for celebrations -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Round+Gothic:wght@400;700;800&display=swap');
+    
+    body {
+      font-family: 'Nanum Round Gothic', sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-jua {
+      font-family: 'Jua', cursive, sans-serif;
+    }
+
+    /* 테마 배경 스타일링 (구매 전 기본은 흰색/그레이) */
+    .bg-theme-none {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    }
+    .bg-theme-spring {
+      background: linear-gradient(135deg, #fbcfe8 0%, #fef08a 50%, #bbf7d0 100%);
+    }
+    .bg-theme-summer {
+      background: linear-gradient(135deg, #38bdf8 0%, #7dd3fc 40%, #fef08a 100%);
+    }
+    .bg-theme-autumn {
+      background: linear-gradient(135deg, #fdba74 0%, #fde047 50%, #ea580c 100%);
+    }
+    .bg-theme-winter {
+      background: linear-gradient(135deg, #cffafe 0%, #e0e7ff 50%, #bfdbfe 100%);
+    }
+    .bg-theme-rainbow {
+      background: linear-gradient(135deg, #fca5a5 0%, #fde047 25%, #86efac 50%, #93c5fd 75%, #d8b4fe 100%);
+    }
+
+    /* 통통 튀는 애니메이션 */
+    @keyframes bounce-gentle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .animate-pet {
+      animation: bounce-gentle 2.2s infinite ease-in-out;
+    }
+
+    /* 버튼 입체 효과 */
+    .btn-3d {
+      transition: all 0.1s ease;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18);
+    }
+    .btn-3d:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    /* 스크롤바 숨기기 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col items-center justify-between">
+
+  <!-- 최상단 헤더 & 상태바 -->
+  <header class="w-full max-w-4xl bg-white/90 backdrop-blur-md shadow-md sticky top-0 z-30 px-4 py-3 rounded-b-2xl border-b border-indigo-100">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <!-- 로고 및 PIN 표시 -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-yellow-300 flex items-center justify-center text-white shadow-sm">
+          <i class="fa-solid fa-robot text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-jua text-xl text-indigo-900 tracking-wide flex items-center gap-1.5">
+            로펫 수학 탐험
+            <span id="headerMedalBadge" class="hidden text-amber-500 animate-pulse text-lg" title="성장 완료 금메달!">
+              <i class="fa-solid fa-medal"></i>
+            </span>
+          </h1>
+          <div class="flex items-center gap-2 text-xs font-bold text-slate-500">
+            <span>PIN: <span id="displayPin" class="text-indigo-600">미연결</span></span>
+            <button onclick="openPinModal()" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-lg border border-indigo-200">
+              <i class="fa-solid fa-key text-[10px]"></i> 변경/불러오기
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 재화 및 30문제 보상 게이지 -->
+      <div class="flex items-center gap-3">
+        <!-- 보유 코인 -->
+        <div class="flex items-center gap-1.5 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200 shadow-sm">
+          <span class="text-xl">🪙</span>
+          <span id="coinDisplay" class="font-jua text-lg text-amber-700">0</span>
+          <span class="text-xs font-bold text-amber-600">원</span>
+        </div>
+
+        <!-- 30문제 풀이 달성 게이지 (100원 보상) -->
+        <div class="bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-100 flex flex-col items-center justify-center">
+          <div class="flex items-center justify-between w-28 text-[11px] font-bold text-indigo-700 mb-0.5">
+            <span>보상 게이지</span>
+            <span><span id="sessionSolvedCount">0</span>/30</span>
+          </div>
+          <div class="w-28 bg-indigo-200 h-2 rounded-full overflow-hidden">
+            <div id="rewardProgressBar" class="bg-indigo-600 h-full w-0 transition-all duration-300"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 메인 레이아웃 (로펫 영역 + 수학 퀴즈 영역) -->
+  <main class="w-full max-w-4xl p-3 sm:p-4 flex-1 flex flex-col md:flex-row gap-4 items-stretch justify-center">
+
+    <!-- 좌측: 로펫 방 (하우스, 배경, 캐릭터, 육성 상태) -->
+    <section id="petRoomSection" class="w-full md:w-5/12 bg-theme-none rounded-3xl p-4 shadow-lg border-2 border-white flex flex-col justify-between relative overflow-hidden transition-all duration-500 min-h-[380px]">
+      
+      <!-- 상단 정보 뱃지들 -->
+      <div class="flex justify-between items-start z-10">
+        <div class="bg-white/85 backdrop-blur-sm px-3 py-1.5 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
+          <span class="text-xs font-bold text-slate-500">성장 레벨</span>
+          <div class="flex items-center gap-1 font-jua text-indigo-600 text-base">
+            <span id="petLevelText">1단계 아기 로펫</span>
+            <span id="roomMedalIcon" class="hidden text-amber-500"><i class="fa-solid fa-medal"></i></span>
+          </div>
+        </div>
+
+        <!-- 집 보유 뱃지 -->
+        <div id="houseBadge" class="hidden bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 animate-bounce">
+          <i class="fa-solid fa-house-chimney"></i> 로펫 하우스 완공!
+        </div>
+      </div>
+
+      <!-- 집 그래픽 배경 (집 구매 시 표시) -->
+      <div id="houseStructure" class="hidden absolute bottom-12 left-1/2 -translate-x-1/2 w-72 h-64 pointer-events-none z-0 opacity-85 flex flex-col items-center justify-end">
+        <svg viewBox="0 0 200 180" class="w-full h-full drop-shadow-xl">
+          <!-- 지붕 -->
+          <polygon points="100,10 10,80 190,80" fill="#f87171" stroke="#ef4444" stroke-width="3"/>
+          <polygon points="100,20 25,80 175,80" fill="#fca5a5"/>
+          <rect x="140" y="25" width="20" height="35" fill="#ea580c" rx="2" />
+          <!-- 집 벽면 -->
+          <rect x="25" y="80" width="150" height="95" fill="#fef3c7" stroke="#f59e0b" stroke-width="3" rx="8"/>
+          <!-- 창문 -->
+          <rect x="42" y="95" width="30" height="30" fill="#bae6fd" stroke="#0284c7" stroke-width="2" rx="4"/>
+          <line x1="57" y1="95" x2="57" y2="125" stroke="#0284c7" stroke-width="2"/>
+          <line x1="42" y1="110" x2="72" y2="110" stroke="#0284c7" stroke-width="2"/>
+          <!-- 문 -->
+          <rect x="110" y="105" width="40" height="70" fill="#b45309" rx="4"/>
+          <circle cx="140" cy="140" r="3" fill="#fef08a"/>
+        </svg>
+      </div>
+
+      <!-- 중앙: 로펫 캐릭터 표시 영역 (깃허브 이미지 연동 전 임시 인터랙티브 SVG 캐릭터) -->
+      <div class="my-auto py-6 flex flex-col items-center justify-center relative z-10">
+        <div id="petAvatarContainer" class="animate-pet cursor-pointer relative" onclick="petClickReaction()">
+          <!-- 클릭 시 뜨는 하트 효과 컨테이너 -->
+          <div id="heartEffect" class="absolute -top-6 left-1/2 -translate-x-1/2 text-rose-500 font-bold text-2xl opacity-0 pointer-events-none transition-all duration-500">
+            💖 +10
+          </div>
+          
+          <!-- 로펫 깃허브 이미지 연동을 위한 Image 태그 (기본 숨김, 파일 설정 시 노출) -->
+          <img id="petImg" src="" alt="로펫" class="hidden w-40 h-40 object-contain drop-shadow-2xl"/>
+
+          <!-- 깃허브 사진 연동 전 귀여운 스마트 로펫 SVG (레벨에 따라 크기/장식 진화) -->
+          <div id="petSvgPlaceholder" class="w-40 h-40 flex items-center justify-center filter drop-shadow-xl transition-transform duration-300">
+            <svg viewBox="0 0 120 120" class="w-full h-full">
+              <!-- 안테나 -->
+              <line x1="60" y1="26" x2="60" y2="10" stroke="#6366f1" stroke-width="4" stroke-linecap="round"/>
+              <circle cx="60" cy="8" r="6" fill="#f43f5e" class="animate-ping" style="animation-duration: 2s;"/>
+              <circle cx="60" cy="8" r="6" fill="#f43f5e"/>
+              
+              <!-- 귀 -->
+              <rect x="18" y="42" width="8" height="16" rx="4" fill="#818cf8"/>
+              <rect x="94" y="42" width="8" height="16" rx="4" fill="#818cf8"/>
+
+              <!-- 머리 몸통 일체형 귀여운 로봇 큐브 -->
+              <rect x="24" y="24" width="72" height="66" rx="18" fill="#e0e7ff" stroke="#4f46e5" stroke-width="4"/>
+              
+              <!-- 모니터 페이스 -->
+              <rect x="32" y="32" width="56" height="42" rx="12" fill="#1e1b4b"/>
+              
+              <!-- 눈 (레벨에 따라 표정 변화) -->
+              <circle id="petEyeLeft" cx="48" cy="50" r="6" fill="#38bdf8"/>
+              <circle id="petEyeRight" cx="72" cy="50" r="6" fill="#38bdf8"/>
+              
+              <!-- 볼터치 -->
+              <circle cx="39" cy="62" r="4" fill="#f43f5e" opacity="0.6"/>
+              <circle cx="81" cy="62" r="4" fill="#f43f5e" opacity="0.6"/>
+
+              <!-- 입 -->
+              <path id="petMouth" d="M 52 64 Q 60 70 68 64" stroke="#38bdf8" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+              <!-- 몸체 디테일 / 버튼 -->
+              <rect x="42" y="92" width="36" height="14" rx="5" fill="#c7d2fe" stroke="#4f46e5" stroke-width="3"/>
+              <circle cx="50" cy="99" r="2.5" fill="#f59e0b"/>
+              <circle cx="60" cy="99" r="2.5" fill="#10b981"/>
+              <circle cx="70" cy="99" r="2.5" fill="#ef4444"/>
+
+              <!-- 발 -->
+              <ellipse cx="44" cy="110" rx="8" ry="5" fill="#4338ca"/>
+              <ellipse cx="76" cy="110" rx="8" ry="5" fill="#4338ca"/>
+            </svg>
+          </div>
+        </div>
+
+        <p class="text-xs font-bold text-slate-600 mt-2 bg-white/70 px-3 py-1 rounded-full shadow-sm">
+          <span id="petSpeech">수학 문제를 풀면 내가 더 똑똑해져요! ✨</span>
+        </p>
+      </div>
+
+      <!-- 하단: 성장 진행바 & 상호작용 퀵버튼 -->
+      <div class="bg-white/80 backdrop-blur-sm p-3 rounded-2xl shadow-sm border border-slate-200 z-10 flex flex-col gap-2">
+        <div class="flex items-center justify-between text-xs font-bold text-slate-600">
+          <span>책 읽기 성장 (<span id="booksBoughtCount">0</span>/10권)</span>
+          <span id="petGrowthStatusText" class="text-indigo-600">성장 가능</span>
+        </div>
+        <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+          <div id="bookProgressBar" class="bg-gradient-to-r from-teal-400 to-indigo-600 h-full w-0 transition-all duration-500"></div>
+        </div>
+
+        <!-- 간식 먹이기 & 장난감 버튼 -->
+        <div class="grid grid-cols-2 gap-2 mt-1">
+          <button onclick="feedPet()" class="btn-3d bg-amber-400 hover:bg-amber-500 text-amber-950 font-jua py-1.5 px-2 rounded-xl flex items-center justify-center gap-1.5 text-sm">
+            <span>🍪 간식 주기</span>
+            <span class="bg-amber-600 text-white text-xs px-1.5 py-0.2 rounded-full font-sans" id="snackCountBadge">0</span>
+          </button>
+          <button onclick="openInventoryModal()" class="btn-3d bg-sky-400 hover:bg-sky-500 text-sky-950 font-jua py-1.5 px-2 rounded-xl flex items-center justify-center gap-1.5 text-sm">
+            <span>🧸 보관함</span>
+            <span class="bg-sky-600 text-white text-xs px-1.5 py-0.2 rounded-full font-sans" id="toyCountBadge">0</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 우측: 초등 2학년 2학기 무한 수학 문제 풀이 영역 -->
+    <section class="w-full md:w-7/12 bg-white rounded-3xl p-5 shadow-lg border border-slate-100 flex flex-col justify-between">
+      
+      <!-- 상단 단원 탭 & 진행 현황 -->
+      <div>
+        <div class="flex items-center justify-between border-b pb-3 mb-4">
+          <div class="flex items-center gap-2">
+            <span id="chapterBadge" class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full border border-indigo-200">
+              1단원. 네 자리 수
+            </span>
+            <span class="text-xs text-slate-400">총 푼 문제: <strong id="totalSolvedDisplay" class="text-slate-700">0</strong>개</span>
+          </div>
+
+          <!-- 단원 변경 드롭다운 -->
+          <select id="chapterSelect" onchange="changeChapter(this.value)" class="text-xs font-bold bg-slate-100 border border-slate-300 rounded-xl px-2 py-1.5 text-slate-700 outline-none focus:ring-2 focus:ring-indigo-400">
+            <option value="all">🎲 전체 단원 무작위</option>
+            <option value="ch1">1. 네 자리 수</option>
+            <option value="ch2">2. 곱셈구구</option>
+            <option value="ch3">3. 길이 재기 (m, cm)</option>
+            <option value="ch4">4. 시각과 시간</option>
+            <option value="ch5">5. 표와 그래프</option>
+            <option value="ch6">6. 규칙 찾기</option>
+          </select>
+        </div>
+
+        <!-- 퀴즈 본문 카드 -->
+        <div class="bg-indigo-50/70 border-2 border-indigo-100 rounded-2xl p-5 mb-4 text-center min-h-[160px] flex flex-col items-center justify-center relative">
+          <div class="text-xs font-bold text-indigo-500 mb-1" id="quizSubInfo">다음 물음에 알맞은 답을 골라보세요.</div>
+          <div id="quizQuestion" class="font-jua text-xl md:text-2xl text-slate-800 tracking-wide leading-relaxed py-2">
+            문제를 불러오는 중입니다...
+          </div>
+          <!-- 보조 시각화 요소 (시계, 표, 수선 등 필요 시 표시) -->
+          <div id="quizAuxDisplay" class="mt-2 text-sm text-indigo-900"></div>
+        </div>
+
+        <!-- 객관식 보기 (4지선다) -->
+        <div id="optionsGrid" class="grid grid-cols-2 gap-3 mb-3">
+          <!-- JS로 동적 생성 -->
+        </div>
+      </div>
+
+      <!-- 하단 메뉴 버튼바 (상점, 저장, 설명) -->
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+        <button onclick="openShopModal()" class="btn-3d flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-jua py-3 px-4 rounded-2xl text-base flex items-center justify-center gap-2 shadow-md">
+          <i class="fa-solid fa-store"></i> 로펫 상점 열기
+        </button>
+        <button onclick="manualSave()" class="btn-3d bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-2xl text-sm border border-slate-300 flex items-center gap-1.5">
+          <i class="fa-solid fa-cloud-arrow-up text-indigo-600"></i> 저장하기
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- 상점 모달창 -->
+  <div id="shopModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- 상점 헤더 -->
+      <div class="bg-gradient-to-r from-emerald-500 to-teal-600 p-4 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2 font-jua text-xl">
+          <i class="fa-solid fa-store"></i> 로펫 문구 상점
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="bg-black/20 px-3 py-1 rounded-xl text-amber-200 font-jua flex items-center gap-1">
+            <span>🪙</span>
+            <span id="shopCoinDisplay">0</span>원
+          </div>
+          <button onclick="closeShopModal()" class="text-white hover:text-slate-200 text-2xl font-bold px-2">&times;</button>
+        </div>
+      </div>
+
+      <!-- 상점 탭 -->
+      <div class="flex border-b bg-slate-50 font-jua text-sm">
+        <button onclick="switchShopTab('growth')" id="tabBtn-growth" class="flex-1 py-3 border-b-2 border-emerald-500 text-emerald-600 bg-white">📚 책/성장/집</button>
+        <button onclick="switchShopTab('background')" id="tabBtn-background" class="flex-1 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800">🖼️ 테마 배경</button>
+        <button onclick="switchShopTab('toys')" id="tabBtn-toys" class="flex-1 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800">🧸 장난감 (50종)</button>
+      </div>
+
+      <!-- 상점 내용 스크롤 영역 -->
+      <div class="p-4 overflow-y-auto no-scrollbar flex-1">
+        
+        <!-- 탭 1: 성장 도서, 간식, 하우스 -->
+        <div id="shopContent-growth" class="space-y-4">
+          <!-- 로펫 성장 도서 -->
+          <div class="flex items-center justify-between p-3 bg-amber-50 rounded-2xl border border-amber-200">
+            <div class="flex items-center gap-3">
+              <div class="w-14 h-14 rounded-2xl bg-amber-200 flex items-center justify-center text-3xl">📖</div>
+              <div>
+                <h4 class="font-jua text-base text-amber-900">로펫의 수학 동화책</h4>
+                <p class="text-xs text-amber-700">10권을 모으면 로펫이 1단계 성장해요! (현재: <span id="shopBookProgress">0/10</span>)</p>
+                <span class="text-xs font-bold text-amber-600">가격: 300원</span>
+              </div>
+            </div>
+            <button onclick="buyItem('book')" class="btn-3d bg-amber-500 hover:bg-amber-600 text-white font-jua px-4 py-2 rounded-xl text-sm">
+              구매 (300원)
+            </button>
+          </div>
+
+          <!-- 로펫 간식 -->
+          <div class="flex items-center justify-between p-3 bg-rose-50 rounded-2xl border border-rose-200">
+            <div class="flex items-center gap-3">
+              <div class="w-14 h-14 rounded-2xl bg-rose-200 flex items-center justify-center text-3xl">🍪</div>
+              <div>
+                <h4 class="font-jua text-base text-rose-900">맛있는 바삭 쿠키</h4>
+                <p class="text-xs text-rose-700">로펫에게 주면 하트와 사랑을 듬뿍 표현해요!</p>
+                <span class="text-xs font-bold text-rose-600">가격: 50원</span>
+              </div>
+            </div>
+            <button onclick="buyItem('snack')" class="btn-3d bg-rose-500 hover:bg-rose-600 text-white font-jua px-4 py-2 rounded-xl text-sm">
+              구매 (50원)
+            </button>
+          </div>
+
+          <!-- 로펫 하우스 (1회 한정) -->
+          <div class="flex items-center justify-between p-3 bg-indigo-50 rounded-2xl border border-indigo-200">
+            <div class="flex items-center gap-3">
+              <div class="w-14 h-14 rounded-2xl bg-indigo-200 flex items-center justify-center text-3xl">🏡</div>
+              <div>
+                <h4 class="font-jua text-base text-indigo-900">포근한 로펫 전원주택</h4>
+                <p class="text-xs text-indigo-700">로펫에게 아늑한 집 1채를 지어줍니다. (1회 한정)</p>
+                <span class="text-xs font-bold text-indigo-600">가격: 1,000원</span>
+              </div>
+            </div>
+            <button id="buyHouseBtn" onclick="buyHouse()" class="btn-3d bg-indigo-600 hover:bg-indigo-700 text-white font-jua px-4 py-2 rounded-xl text-sm">
+              건축 (1000원)
+            </button>
+          </div>
+        </div>
+
+        <!-- 탭 2: 배경 (봄, 여름, 가을, 겨울, 무지개 - 각 500원) -->
+        <div id="shopContent-background" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- 배경 리스트 동적 렌더링 -->
+        </div>
+
+        <!-- 탭 3: 장난감 50종 (각 100원) -->
+        <div id="shopContent-toys" class="hidden">
+          <p class="text-xs font-bold text-slate-500 mb-3">로펫이 좋아하는 장난감 50종! (모두 100원)</p>
+          <div id="toysGridContainer" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            <!-- 50개 장난감 동적 렌더링 -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 보관함(인벤토리) 모달창 -->
+  <div id="inventoryModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-5 flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between border-b pb-3 mb-3">
+        <h3 class="font-jua text-xl text-sky-800 flex items-center gap-2">
+          <i class="fa-solid fa-box-open"></i> 로펫의 장난감 상자
+        </h3>
+        <button onclick="closeInventoryModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">&times;</button>
+      </div>
+      <div id="inventoryList" class="overflow-y-auto no-scrollbar flex-1 py-2 grid grid-cols-2 gap-2">
+        <!-- 보유 장난감 표시 -->
+      </div>
+      <div class="mt-4 pt-3 border-t text-center text-xs text-slate-500">
+        장난감을 누르면 로펫이 기뻐하며 소리를 냅니다!
+      </div>
+    </div>
+  </div>
+
+  <!-- PIN 코드 입력/변경 모달창 -->
+  <div id="pinModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-sm shadow-2xl p-6 text-center">
+      <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-2xl mx-auto mb-3">
+        <i class="fa-solid fa-key"></i>
+      </div>
+      <h3 class="font-jua text-xl text-slate-800 mb-1">PIN 코드 입력</h3>
+      <p class="text-xs text-slate-500 mb-4">본인의 4자리 숫자(또는 이름)를 입력하여 이전 점수와 로펫을 불러오세요.</p>
+      
+      <input type="text" id="pinInput" maxlength="10" placeholder="예: 1234" class="w-full text-center font-jua text-2xl tracking-widest py-3 border-2 border-indigo-200 rounded-2xl mb-4 focus:outline-none focus:border-indigo-600 uppercase">
+      
+      <div class="flex gap-2">
+        <button onclick="closePinModal()" class="btn-3d flex-1 bg-slate-100 text-slate-600 font-bold py-2.5 rounded-xl text-sm">닫기</button>
+        <button onclick="confirmPin()" class="btn-3d flex-1 bg-indigo-600 text-white font-jua py-2.5 rounded-xl text-sm">불러오기 / 시작</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 커스텀 알림/메시지 모달 (alert 대체) -->
+  <div id="alertModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-sm shadow-2xl p-6 text-center border-t-8 border-indigo-500 animate-in fade-in zoom-in-90 duration-150">
+      <div id="alertIcon" class="text-4xl mb-2">🎉</div>
+      <h4 id="alertTitle" class="font-jua text-xl text-slate-800 mb-1">알림</h4>
+      <p id="alertMessage" class="text-sm text-slate-600 mb-5 whitespace-pre-line"></p>
+      <button onclick="closeAlertModal()" class="btn-3d w-full bg-indigo-600 hover:bg-indigo-700 text-white font-jua py-2.5 rounded-xl text-base">
+        확인
+      </button>
+    </div>
+  </div>
+
+  <!-- 푸터 상태 표시 -->
+  <footer class="w-full max-w-4xl py-3 px-4 text-center text-xs text-slate-400">
+    초등 2학년 2학기 수학 &bull; 클라우드 동기화 시스템 &bull; 매 30문제 완료 시 100원 지급!
+  </footer>
+
+  <script>
+    /* ==========================================================================
+       1. 사운드 효과 엔진 (Tone.js 합성기 - 외부 음원 불필요)
+       ========================================================================== */
+    let audioInitialized = false;
+    let synth, polySynth;
+
+    function initAudio() {
+      if (audioInitialized) return;
+      try {
+        Tone.start();
+        synth = new Tone.Synth({
+          oscillator: { type: "triangle" },
+          envelope: { attack: 0.01, decay: 0.15, sustain: 0, release: 0.1 }
+        }).toDestination();
+        polySynth = new Tone.PolySynth(Tone.Synth).toDestination();
+        audioInitialized = true;
+      } catch (e) {
+        console.warn("Audio init deferred");
+      }
+    }
+
+    function playSound(type) {
+      initAudio();
+      if (!audioInitialized) return;
+      try {
+        const now = Tone.now();
+        if (type === 'correct') {
+          polySynth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "8n", now);
+        } else if (type === 'wrong') {
+          synth.triggerAttackRelease("A3", "16n", now);
+          synth.triggerAttackRelease("F3", "16n", now + 0.1);
+        } else if (type === 'reward') {
+          polySynth.triggerAttackRelease(["G4", "C5", "E5", "G5", "C6"], "8n", now);
+        } else if (type === 'click') {
+          synth.triggerAttackRelease("C6", "32n", now);
+        } else if (type === 'grow') {
+          polySynth.triggerAttackRelease(["C4", "E4", "G4", "B4", "C5", "E5"], "4n", now);
+        }
+      } catch (e) {
+        // 무음 처리
+      }
+    }
+
+    /* ==========================================================================
+       2. 백엔드 URL 및 상수 정의
+       ========================================================================== */
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycby93Hcd7xG0FxBf1I2MR1ZIuNyidvy3HxsYdxBkZxvAy3hsd_9Wdon_Yo659FCPOHia/exec";
+
+    // 5가지 테마 배경
+    const BACKGROUNDS = [
+      { id: 'spring', name: '🌸 따스한 봄날', price: 500, class: 'bg-theme-spring' },
+      { id: 'summer', name: '🌊 시원한 바다', price: 500, class: 'bg-theme-summer' },
+      { id: 'autumn', name: '🍁 노을빛 가을', price: 500, class: 'bg-theme-autumn' },
+      { id: 'winter', name: '❄️ 새하얀 겨울', price: 500, class: 'bg-theme-winter' },
+      { id: 'rainbow', name: '🌈 무지개 언덕', price: 500, class: 'bg-theme-rainbow' }
+    ];
+
+    // 50종의 로펫 장난감 목록 (아이들이 좋아하는 귀여운 아이템 모음)
+    const TOY_ITEMS = [
+      { id: 'toy_1', name: '축구공', icon: '⚽' },
+      { id: 'toy_2', name: '농구공', icon: '🏀' },
+      { id: 'toy_3', name: '야구 방망이', icon: '⚾' },
+      { id: 'toy_4', name: '테니스 라켓', icon: '🎾' },
+      { id: 'toy_5', name: '요요', icon: '🪀' },
+      { id: 'toy_6', name: '연날리기 세트', icon: '🪁' },
+      { id: 'toy_7', name: '미니 자동차', icon: '🚗' },
+      { id: 'toy_8', name: '장난감 기차', icon: '🚂' },
+      { id: 'toy_9', name: '우주 왕복선', icon: '🚀' },
+      { id: 'toy_10', name: '헬리콥터', icon: '🚁' },
+      { id: 'toy_11', name: '소방차', icon: '🚒' },
+      { id: 'toy_12', name: '경찰차', icon: '🚓' },
+      { id: 'toy_13', name: '포크레인', icon: '🚜' },
+      { id: 'toy_14', name: '곰인형', icon: '🧸' },
+      { id: 'toy_15', name: '마술봉', icon: '🪄' },
+      { id: 'toy_16', name: '전자 기타', icon: '🎸' },
+      { id: 'toy_17', name: '미니 피아노', icon: '🎹' },
+      { id: 'toy_18', name: '드럼 세트', icon: '🥁' },
+      { id: 'toy_19', name: '나팔', icon: '🎺' },
+      { id: 'toy_20', name: '바이올린', icon: '🎻' },
+      { id: 'toy_21', name: '보드게임', icon: '🎲' },
+      { id: 'toy_22', name: '퍼즐 블록', icon: '🧩' },
+      { id: 'toy_23', name: '게임보이', icon: '🎮' },
+      { id: 'toy_24', name: '조립 로봇', icon: '🤖' },
+      { id: 'toy_25', name: '물총', icon: '🔫' },
+      { id: 'toy_26', name: '잠수함 완구', icon: '🤿' },
+      { id: 'toy_27', name: '롤러스케이트', icon: '🛼' },
+      { id: 'toy_28', name: '스케이트보드', icon: '🛹' },
+      { id: 'toy_29', name: '씽씽이 킥보드', icon: '🛴' },
+      { id: 'toy_30', name: '세발 자전거', icon: '🚲' },
+      { id: 'toy_31', name: '알록달록 풍선', icon: '🎈' },
+      { id: 'toy_32', name: '반짝 파티폭죽', icon: '🎉' },
+      { id: 'toy_33', name: '공룡 피규어', icon: '🦖' },
+      { id: 'toy_34', name: '아기 병아리', icon: '🐥' },
+      { id: 'toy_35', name: '귀여운 강아지 인형', icon: '🐶' },
+      { id: 'toy_36', name: '야옹이 방울', icon: '🐱' },
+      { id: 'toy_37', name: '유니콘 완구', icon: '🦄' },
+      { id: 'toy_38', name: '돌고래 튜브', icon: '🐬' },
+      { id: 'toy_39', name: '무지개 바람개비', icon: '🫧' },
+      { id: 'toy_40', name: '소꿉놀이 주전자', icon: '🫖' },
+      { id: 'toy_41', name: '딸기 컵케이크 모형', icon: '🧁' },
+      { id: 'toy_42', name: '막대사탕 요술봉', icon: '🍭' },
+      { id: 'toy_43', name: '황금 왕관', icon: '👑' },
+      { id: 'toy_44', name: '탐정 돋보기', icon: '🔍' },
+      { id: 'toy_45', name: '천체 망원경', icon: '🔭' },
+      { id: 'toy_46', name: '어린이 카메라', icon: '📷' },
+      { id: 'toy_47', name: '스위치 마이크', icon: '🎤' },
+      { id: 'toy_48', name: '우산 모자', icon: '⛱️' },
+      { id: 'toy_49', name: '눈사람 인형', icon: '⛄' },
+      { id: 'toy_50', name: '우주선 조종간', icon: '🛸' }
+    ];
+
+    /* ==========================================================================
+       3. 상태 관리 변수 (State)
+       ========================================================================== */
+    let userState = {
+      pin: "2026",
+      coins: 0,
+      solvedCount: 0,           // 누적 푼 문제 수
+      sessionSolvedCount: 0,    // 30문제 보상 체크용 (0~30)
+      level: 1,                 // 1~4단계
+      booksBought: 0,           // 누적 책 구매 수
+      startDate: new Date().toISOString().split('T')[0],
+      hasMedal: false,
+      hasHouse: false,
+      equippedBackground: "none",
+      unlockedBackgrounds: ["none"],
+      inventoryToys: [],
+      inventorySnacks: 0,
+      petImageFile: ""          // 깃허브 이미지 연동 시 여기에 파일명 지정
+    };
+
+    let currentQuestion = null;
+    let selectedChapter = "all";
+
+    /* ==========================================================================
+       4. 초등학교 2학년 2학기 전 단원 무한 문제 생성 엔진
+       ========================================================================== */
+    const MathGenerator = {
+      // 1단원: 네 자리 수
+      ch1: () => {
+        const types = ['reading', 'placeValue', 'skipCounting', 'compare'];
+        const sub = types[Math.floor(Math.random() * types.length)];
+
+        if (sub === 'reading') {
+          const n = (Math.floor(Math.random() * 9) + 1) * 1000 +
+                    Math.floor(Math.random() * 10) * 100 +
+                    Math.floor(Math.random() * 10) * 10 +
+                    Math.floor(Math.random() * 10);
+          const korMap = ['영', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+          const th = korMap[Math.floor(n / 1000)] + '천';
+          const h = Math.floor((n % 1000) / 100) > 0 ? korMap[Math.floor((n % 1000) / 100)] + '백' : '';
+          const t = Math.floor((n % 100) / 10) > 0 ? korMap[Math.floor((n % 100) / 10)] + '십' : '';
+          const o = (n % 10) > 0 ? korMap[n % 10] : '';
+          const kor = (th + h + t + o).replace(/^일천/, '천');
+
+          return {
+            unit: '1. 네 자리 수',
+            question: `수 <strong>${n}</strong>을(를) 바르게 읽은 것은 무엇일까요?`,
+            answer: kor,
+            choices: shuffle([
+              kor,
+              kor.replace('천', '백'),
+              kor.replace('오', '육'),
+              kor + '일'
+            ])
+          };
+        } else if (sub === 'placeValue') {
+          const a = Math.floor(Math.random() * 9) + 1;
+          const b = Math.floor(Math.random() * 10);
+          const c = Math.floor(Math.random() * 10);
+          const d = Math.floor(Math.random() * 10);
+          const num = a * 1000 + b * 100 + c * 10 + d;
+          
+          return {
+            unit: '1. 네 자리 수',
+            question: `1000이 ${a}개, 100이 ${b}개, 10이 ${c}개, 1이 ${d}개인 수는?`,
+            answer: `${num}`,
+            choices: shuffle([
+              `${num}`,
+              `${num + 100}`,
+              `${num - 10 > 1000 ? num - 10 : num + 10}`,
+              `${a * 100 + b * 10 + c}`
+            ])
+          };
+        } else if (sub === 'skipCounting') {
+          const step = [10, 100, 1000][Math.floor(Math.random() * 3)];
+          const start = (Math.floor(Math.random() * 6) + 1) * 1000 + Math.floor(Math.random() * 50) * 10;
+          const seq = [start, start + step, start + step * 2, start + step * 3];
+          const blankIdx = 2; // 세 번째를 빈칸
+          const ans = seq[blankIdx];
+          const displaySeq = seq.map((v, i) => i === blankIdx ? ' ( ? ) ' : v).join(' - ');
+
+          return {
+            unit: '1. 네 자리 수',
+            question: `${step}씩 뛰어 세기입니다. ( ? )에 들어갈 수는?<br><span class="text-indigo-600 font-bold">[ ${displaySeq} ]</span>`,
+            answer: `${ans}`,
+            choices: shuffle([`${ans}`, `${ans + step}`, `${ans - step}`, `${ans + 1}`])
+          };
+        } else {
+          // 크기 비교
+          const v1 = Math.floor(Math.random() * 8000) + 1000;
+          const v2 = v1 + (Math.floor(Math.random() * 10) + 1) * 10;
+          return {
+            unit: '1. 네 자리 수',
+            question: `두 수의 크기 비교로 알맞은 기호는?<br><span class="text-indigo-600 font-bold text-2xl">${v1}  ( ? )  ${v2}</span>`,
+            answer: '<',
+            choices: ['<', '>', '=', '+']
+          };
+        }
+      },
+
+      // 2단원: 곱셈구구
+      ch2: () => {
+        const d1 = Math.floor(Math.random() * 8) + 2; // 2~9단
+        const d2 = Math.floor(Math.random() * 9) + 1; // 1~9
+        const product = d1 * d2;
+        const types = ['basic', 'story', 'blank'];
+        const t = types[Math.floor(Math.random() * types.length)];
+
+        if (t === 'story') {
+          const items = ['사과', '연필', '지우개', '초콜릿', '사탕', '도넛'];
+          const item = items[Math.floor(Math.random() * items.length)];
+          return {
+            unit: '2. 곱셈구구',
+            question: `${item}이 한 접시에 <strong>${d1}개</strong>씩 있습니다. <strong>${d2}접시</strong>에 있는 ${item}는 모두 몇 개일까요?`,
+            answer: `${product}개`,
+            choices: shuffle([
+              `${product}개`,
+              `${product + d1}개`,
+              `${product - (d1 > 1 ? 1 : 2)}개`,
+              `${d1 + d2}개`
+            ])
+          };
+        } else if (t === 'blank') {
+          return {
+            unit: '2. 곱셈구구',
+            question: `곱셈식의 빈칸에 알맞은 수는?<br><span class="text-indigo-600 font-bold text-2xl">${d1} &times; ( ? ) = ${product}</span>`,
+            answer: `${d2}`,
+            choices: shuffle([`${d2}`, `${(d2 % 9) + 1}`, `${Math.max(1, d2 - 1)}`, `${d2 + 2}`])
+          };
+        } else {
+          return {
+            unit: '2. 곱셈구구',
+            question: `계산 결과가 바른 것을 고르세요.<br><span class="text-indigo-600 font-bold text-2xl">${d1} &times; ${d2} = ?</span>`,
+            answer: `${product}`,
+            choices: shuffle([
+              `${product}`,
+              `${product + (d1 === 2 ? 1 : 2)}`,
+              `${Math.max(1, product - 3)}`,
+              `${product + 10}`
+            ])
+          };
+        }
+      },
+
+      // 3단원: 길이 재기 (m와 cm)
+      ch3: () => {
+        const types = ['convert', 'sum', 'diff', 'estimate'];
+        const t = types[Math.floor(Math.random() * types.length)];
+
+        if (t === 'convert') {
+          const m = Math.floor(Math.random() * 5) + 1;
+          const cm = Math.floor(Math.random() * 89) + 10;
+          const totalCm = m * 100 + cm;
+          return {
+            unit: '3. 길이 재기',
+            question: `<strong>${m}m ${cm}cm</strong>는 몇 cm일까요?`,
+            answer: `${totalCm}cm`,
+            choices: shuffle([
+              `${totalCm}cm`,
+              `${m * 10 + cm}cm`,
+              `${totalCm + 10}cm`,
+              `${totalCm - 100}cm`
+            ])
+          };
+        } else if (t === 'sum') {
+          const m1 = Math.floor(Math.random() * 3) + 1;
+          const c1 = Math.floor(Math.random() * 40) + 10;
+          const m2 = Math.floor(Math.random() * 2) + 1;
+          const c2 = Math.floor(Math.random() * 40) + 10;
+          const resM = m1 + m2;
+          const resC = c1 + c2;
+          return {
+            unit: '3. 길이 재기',
+            question: `길이의 합을 구하세요.<br><span class="text-indigo-600 font-bold">${m1}m ${c1}cm + ${m2}m ${c2}cm</span>`,
+            answer: `${resM}m ${resC}cm`,
+            choices: shuffle([
+              `${resM}m ${resC}cm`,
+              `${resM + 1}m ${resC}cm`,
+              `${resM}m ${resC + 10}cm`,
+              `${resM - 1}m ${resC}cm`
+            ])
+          };
+        } else if (t === 'diff') {
+          const m1 = Math.floor(Math.random() * 3) + 3;
+          const c1 = Math.floor(Math.random() * 30) + 50;
+          const m2 = Math.floor(Math.random() * 2) + 1;
+          const c2 = Math.floor(Math.random() * 30) + 10;
+          const resM = m1 - m2;
+          const resC = c1 - c2;
+          return {
+            unit: '3. 길이 재기',
+            question: `길이의 차를 구하세요.<br><span class="text-indigo-600 font-bold">${m1}m ${c1}cm - ${m2}m ${c2}cm</span>`,
+            answer: `${resM}m ${resC}cm`,
+            choices: shuffle([
+              `${resM}m ${resC}cm`,
+              `${resM}m ${resC + 10}cm`,
+              `${resM + 1}m ${resC}cm`,
+              `${resM - 1}m ${resC}cm`
+            ])
+          };
+        } else {
+          return {
+            unit: '3. 길이 재기',
+            question: `초등학교 운동장 100m 달리기 트랙의 길이를 나타낼 때 가장 알맞은 단위는?`,
+            answer: 'm (미터)',
+            choices: ['m (미터)', 'cm (센티미터)', '시 (시간)', 'kg (킬로그램)']
+          };
+        }
+      },
+
+      // 4단원: 시각과 시간
+      ch4: () => {
+        const types = ['clock', 'afterTime', 'dayHours'];
+        const t = types[Math.floor(Math.random() * types.length)];
+
+        if (t === 'clock') {
+          const h = Math.floor(Math.random() * 11) + 1;
+          const m = [0, 15, 30, 45, 50][Math.floor(Math.random() * 5)];
+          const mStr = m === 0 ? '정각' : `${m}분`;
+          return {
+            unit: '4. 시각과 시간',
+            question: `짧은바늘이 <strong>${h}</strong>와 <strong>${h + 1}</strong> 사이를 가리키고, 긴바늘이 <strong>${m / 5 === 0 ? 12 : m / 5}</strong>를 가리킬 때 시각은?`,
+            answer: `${h}시 ${mStr}`,
+            choices: shuffle([
+              `${h}시 ${mStr}`,
+              `${h + 1}시 ${mStr}`,
+              `${h}시 ${m === 30 ? '15분' : '30분'}`,
+              `${(h % 12) + 2}시 정각`
+            ])
+          };
+        } else if (t === 'afterTime') {
+          const h = Math.floor(Math.random() * 4) + 1;
+          const after = Math.floor(Math.random() * 3) + 1;
+          return {
+            unit: '4. 시각과 시간',
+            question: `현재 시각은 <strong>${h}시</strong>입니다. <strong>${after}시간 후</strong>의 시각은 몇 시일까요?`,
+            answer: `${h + after}시`,
+            choices: shuffle([
+              `${h + after}시`,
+              `${h + after + 1}시`,
+              `${Math.max(1, h + after - 2)}시`,
+              `${h * 2}시`
+            ])
+          };
+        } else {
+          return {
+            unit: '4. 시각과 시간',
+            question: `하루는 모두 몇 시간일까요?`,
+            answer: '24시간',
+            choices: ['24시간', '12시간', '60시간', '30시간']
+          };
+        }
+      },
+
+      // 5단원: 표와 그래프
+      ch5: () => {
+        const fruits = [
+          { name: '딸기', count: Math.floor(Math.random() * 5) + 5 },
+          { name: '포도', count: Math.floor(Math.random() * 4) + 3 },
+          { name: '사과', count: Math.floor(Math.random() * 5) + 6 },
+          { name: '바나나', count: Math.floor(Math.random() * 3) + 2 }
+        ];
+        // 중복 방지 정렬
+        fruits.sort((a, b) => b.count - a.count);
+        const most = fruits[0];
+        const least = fruits[fruits.length - 1];
+        const askMost = Math.random() > 0.5;
+
+        const tableDisplay = fruits.map(f => `${f.name}: ${f.count}명`).join(' | ');
+
+        return {
+          unit: '5. 표와 그래프',
+          question: `[좋아하는 과일 조사]<br><span class="text-sm text-indigo-700 font-bold bg-white px-2 py-1 rounded-md border inline-block my-1">${tableDisplay}</span><br>학생들이 <strong>가장 ${askMost ? '많이' : '적게'} 좋아하는 과일</strong>은 무엇일까요?`,
+          answer: askMost ? most.name : least.name,
+          choices: shuffle([fruits[0].name, fruits[1].name, fruits[2].name, fruits[3].name])
+        };
+      },
+
+      // 6단원: 규칙 찾기
+      ch6: () => {
+        const types = ['numSeq', 'pattern'];
+        const t = types[Math.floor(Math.random() * types.length)];
+
+        if (t === 'numSeq') {
+          const diff = [2, 3, 5, 10][Math.floor(Math.random() * 4)];
+          const start = Math.floor(Math.random() * 20) + 1;
+          const seq = [start, start + diff, start + diff * 2, start + diff * 3, start + diff * 4];
+          const ans = seq[3];
+          seq[3] = '( ? )';
+
+          return {
+            unit: '6. 규칙 찾기',
+            question: `수의 규칙을 찾아 빈칸에 알맞은 수를 고르세요.<br><span class="text-indigo-600 font-bold text-xl">${seq.join(' - ')}</span>`,
+            answer: `${ans}`,
+            choices: shuffle([`${ans}`, `${ans + diff}`, `${ans - 1}`, `${ans + 2}`])
+          };
+        } else {
+          const shapes = ['🟡', '🔺', '🟦', '⭐'];
+          const p1 = shapes[Math.floor(Math.random() * shapes.length)];
+          let p2 = shapes[Math.floor(Math.random() * shapes.length)];
+          while (p2 === p1) p2 = shapes[Math.floor(Math.random() * shapes.length)];
+          
+          return {
+            unit: '6. 규칙 찾기',
+            question: `반복되는 모양 규칙입니다. 빈칸에 들어갈 모양은?<br><span class="text-2xl">${p1} ${p2} ${p1} ${p2} ${p1} ( ? )</span>`,
+            answer: p2,
+            choices: shuffle([p1, p2, '🟩', '🔷'])
+          };
+        }
+      }
+    };
+
+    function shuffle(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      // 중복 제거
+      return Array.from(new Set(copy));
+    }
+
+    /* ==========================================================================
+       5. 퀴즈 실행 및 정답 검증 로직
+       ========================================================================== */
+    function generateQuestion() {
+      let unitKey = selectedChapter;
+      if (unitKey === "all") {
+        const allChapters = ['ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6'];
+        unitKey = allChapters[Math.floor(Math.random() * allChapters.length)];
+      }
+      currentQuestion = MathGenerator[unitKey]();
+
+      // UI 렌더링
+      document.getElementById('chapterBadge').innerText = currentQuestion.unit;
+      document.getElementById('quizQuestion').innerHTML = currentQuestion.question;
+
+      const optionsGrid = document.getElementById('optionsGrid');
+      optionsGrid.innerHTML = '';
+
+      currentQuestion.choices.forEach((choiceText) => {
+        const btn = document.createElement('button');
+        btn.className = "btn-3d bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-indigo-200 font-jua py-3.5 px-4 rounded-2xl text-base md:text-lg flex items-center justify-center transition-all";
+        btn.innerHTML = choiceText;
+        btn.onclick = () => handleAnswer(choiceText, btn);
+        optionsGrid.appendChild(btn);
+      });
+    }
+
+    function handleAnswer(selected, buttonElem) {
+      const isCorrect = (selected.trim() === currentQuestion.answer.trim());
+      
+      // 버튼 비활성화 방지 효과
+      const allButtons = document.getElementById('optionsGrid').querySelectorAll('button');
+      allButtons.forEach(b => b.disabled = true);
+
+      if (isCorrect) {
+        playSound('correct');
+        buttonElem.classList.remove('bg-indigo-50', 'border-indigo-200');
+        buttonElem.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600');
+        
+        userState.solvedCount++;
+        userState.sessionSolvedCount++;
+
+        // 30문제 도달 시 100원 보상 지급!
+        if (userState.sessionSolvedCount >= 30) {
+          userState.coins += 100;
+          userState.sessionSolvedCount = 0;
+          playSound('reward');
+          confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+          showCustomAlert(
+            "🎉 30문제 풀이 완료!",
+            "대단해요! 수학 문제를 30개나 해결하여\n보너스 [100원]을 획득했습니다! 🪙",
+            "🪙"
+          );
+        }
+
+        updateUI();
+        triggerPetExpression('happy');
+
+        setTimeout(() => {
+          generateQuestion();
+        }, 650);
+
+      } else {
+        playSound('wrong');
+        buttonElem.classList.remove('bg-indigo-50');
+        buttonElem.classList.add('bg-rose-500', 'text-white', 'border-rose-600');
+        triggerPetExpression('sad');
+
+        setTimeout(() => {
+          buttonElem.classList.remove('bg-rose-500', 'text-white', 'border-rose-600');
+          buttonElem.classList.add('bg-indigo-50');
+          allButtons.forEach(b => b.disabled = false);
+        }, 800);
+      }
+    }
+
+    function changeChapter(val) {
+      selectedChapter = val;
+      generateQuestion();
+    }
+
+    /* ==========================================================================
+       6. 로펫 키우기 & 성장 & 애니메이션 시스템
+       ========================================================================== */
+    function checkPetGrowth() {
+      // 1년(365일) 경과 시 1단계 자동 성장 보너스
+      let dateBonusLevel = 0;
+      if (userState.startDate) {
+        const start = new Date(userState.startDate);
+        const now = new Date();
+        const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+        if (diffDays >= 365) {
+          dateBonusLevel = 1;
+        }
+      }
+
+      // 책 10권당 1단계 성장
+      const bookLevelBonus = Math.floor(userState.booksBought / 10);
+      const calculatedLevel = Math.min(4, 1 + bookLevelBonus + dateBonusLevel);
+
+      if (calculatedLevel > userState.level) {
+        userState.level = calculatedLevel;
+        playSound('grow');
+        confetti({ particleCount: 150, spread: 90 });
+        
+        if (userState.level >= 4) {
+          userState.hasMedal = true;
+          showCustomAlert(
+            "🏆 최고 단계 진화 & 금메달!",
+            "축하합니다! 로펫이 최대 단계(4단계)로 성장하여\n명예로운 [금메달]을 획득했습니다!",
+            "🥇"
+          );
+        } else {
+          showCustomAlert(
+            "🌟 로펫 성장 완료!",
+            `로펫이 멋지게 진화했습니다!\n현재 성장 단계: [${userState.level}단계]`,
+            "✨"
+          );
+        }
+      }
+
+      if (userState.level >= 4) {
+        userState.hasMedal = true;
+      }
+    }
+
+    function triggerPetExpression(type) {
+      const mouth = document.getElementById('petMouth');
+      const speech = document.getElementById('petSpeech');
+      const eyeL = document.getElementById('petEyeLeft');
+      const eyeR = document.getElementById('petEyeRight');
+
+      if (type === 'happy') {
+        mouth.setAttribute('d', 'M 48 60 Q 60 76 72 60');
+        speech.innerText = "와! 정답이에요! 최고예요! 💡";
+        eyeL.setAttribute('fill', '#34d399');
+        eyeR.setAttribute('fill', '#34d399');
+      } else if (type === 'sad') {
+        mouth.setAttribute('d', 'M 48 70 Q 60 58 72 70');
+        speech.innerText = "조금만 더 생각해보면 맞힐 수 있어요! 힘내요! 💪";
+        eyeL.setAttribute('fill', '#fb7185');
+        eyeR.setAttribute('fill', '#fb7185');
+      }
+
+      setTimeout(() => {
+        mouth.setAttribute('d', 'M 52 64 Q 60 70 68 64');
+        eyeL.setAttribute('fill', '#38bdf8');
+        eyeR.setAttribute('fill', '#38bdf8');
+        speech.innerText = "문제를 풀면 제가 더 똑똑해져요! 🤖";
+      }, 1500);
+    }
+
+    function petClickReaction() {
+      playSound('click');
+      const heart = document.getElementById('heartEffect');
+      heart.classList.remove('opacity-0', '-top-6');
+      heart.classList.add('opacity-100', '-top-12');
+      
+      const phrases = [
+        "쓰다듬어줘서 기분 좋아요! 💖",
+        "수학 공부 열심히 해요! 📐",
+        "저에게 동화책을 더 읽어주세요! 📖",
+        "삐리릭- 로펫이 행복해합니다! 🤖"
+      ];
+      document.getElementById('petSpeech').innerText = phrases[Math.floor(Math.random() * phrases.length)];
+
+      setTimeout(() => {
+        heart.classList.remove('opacity-100', '-top-12');
+        heart.classList.add('opacity-0', '-top-6');
+      }, 700);
+    }
+
+    function feedPet() {
+      if (userState.inventorySnacks <= 0) {
+        showCustomAlert("간식이 부족해요", "상점에서 맛있는 쿠키(50원)를 사주세요! 🍪", "🍪");
+        return;
+      }
+      userState.inventorySnacks--;
+      playSound('correct');
+      confetti({ particleCount: 30, spread: 45, origin: { y: 0.7 } });
+      document.getElementById('petSpeech').innerText = "얌얌! 정말 맛있어요! 고마워요 친구야! 🍪";
+      updateUI();
+    }
+
+    /* ==========================================================================
+       7. 상점 및 아이템 구매/장착 로직
+       ========================================================================== */
+    function openShopModal() {
+      playSound('click');
+      document.getElementById('shopModal').classList.remove('hidden');
+      updateShopUI();
+    }
+
+    function closeShopModal() {
+      playSound('click');
+      document.getElementById('shopModal').classList.add('hidden');
+    }
+
+    function switchShopTab(tabKey) {
+      playSound('click');
+      ['growth', 'background', 'toys'].forEach(t => {
+        document.getElementById(`tabBtn-${t}`).className = (t === tabKey)
+          ? "flex-1 py-3 border-b-2 border-emerald-500 text-emerald-600 bg-white font-jua text-sm"
+          : "flex-1 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-jua text-sm";
+        document.getElementById(`shopContent-${t}`).classList.toggle('hidden', t !== tabKey);
+      });
+    }
+
+    function buyItem(type, itemId = null) {
+      if (type === 'book') {
+        if (userState.coins < 300) {
+          showCustomAlert("코인이 부족해요", "책을 사려면 300원이 필요합니다.\n수학 문제를 더 풀어보세요! 🪙", "🪙");
+          return;
+        }
+        userState.coins -= 300;
+        userState.booksBought++;
+        playSound('reward');
+        checkPetGrowth();
+        updateUI();
+        updateShopUI();
+        showCustomAlert("책 구매 완료", `로펫 동화책을 구매했습니다!\n(누적 책: ${userState.booksBought}권)`, "📖");
+
+      } else if (type === 'snack') {
+        if (userState.coins < 50) {
+          showCustomAlert("코인이 부족해요", "간식은 50원입니다! 🍪", "🪙");
+          return;
+        }
+        userState.coins -= 50;
+        userState.inventorySnacks++;
+        playSound('correct');
+        updateUI();
+        updateShopUI();
+        showCustomAlert("간식 구매 완료", "맛있는 쿠키를 1개 샀습니다!\n로펫에게 간식을 먹여보세요! 🍪", "🍪");
+
+      } else if (type === 'background') {
+        const bg = BACKGROUNDS.find(b => b.id === itemId);
+        if (!bg) return;
+
+        if (userState.unlockedBackgrounds.includes(bg.id)) {
+          // 이미 구매했으면 장착
+          userState.equippedBackground = bg.id;
+          playSound('click');
+          applyBackground(bg.id);
+          updateShopUI();
+          showCustomAlert("배경 착용 완료", `[${bg.name}] 테마를 로펫의 방에 적용했습니다!`, "🖼️");
+          return;
+        }
+
+        if (userState.coins < bg.price) {
+          showCustomAlert("코인이 부족해요", `배경을 구매하려면 ${bg.price}원이 필요합니다!`, "🪙");
+          return;
+        }
+
+        userState.coins -= bg.price;
+        userState.unlockedBackgrounds.push(bg.id);
+        userState.equippedBackground = bg.id;
+        playSound('reward');
+        applyBackground(bg.id);
+        updateUI();
+        updateShopUI();
+        showCustomAlert("배경 구매 & 착용!", `예쁜 [${bg.name}] 배경을 구매하여 장착했습니다!`, "🎉");
+
+      } else if (type === 'toy') {
+        const toy = TOY_ITEMS.find(t => t.id === itemId);
+        if (!toy) return;
+
+        if (userState.inventoryToys.includes(toy.id)) {
+          showCustomAlert("이미 있는 장난감", "이미 보유 중인 장난감입니다. 보관함에서 꺼내 놀아주세요!", "🧸");
+          return;
+        }
+
+        if (userState.coins < 100) {
+          showCustomAlert("코인이 부족해요", "장난감은 100원입니다! 🪙", "🪙");
+          return;
+        }
+
+        userState.coins -= 100;
+        userState.inventoryToys.push(toy.id);
+        playSound('reward');
+        updateUI();
+        updateShopUI();
+        showCustomAlert("장난감 구매 완료!", `[${toy.name} ${toy.icon}]을(를) 샀습니다!\n보관함에 보관되었습니다.`, toy.icon);
+      }
+    }
+
+    function buyHouse() {
+      if (userState.hasHouse) {
+        showCustomAlert("건축 완료됨", "로펫의 집은 이미 1채 지어졌습니다! 다시 지을 수 없어요. 🏡", "🏡");
+        return;
+      }
+      if (userState.coins < 1000) {
+        showCustomAlert("코인이 부족해요", "로펫 전원주택을 지으려면 1,000원이 필요합니다! 🪙", "🪙");
+        return;
+      }
+
+      userState.coins -= 1000;
+      userState.hasHouse = true;
+      playSound('reward');
+      confetti({ particleCount: 160, spread: 100 });
+      updateUI();
+      updateShopUI();
+      showCustomAlert("🏡 집 짓기 완공!", "와! 1,000원을 모아 로펫만의 멋진 집을 지었습니다!\n로펫이 아주 행복해합니다!", "🏡");
+    }
+
+    function applyBackground(bgId) {
+      const room = document.getElementById('petRoomSection');
+      room.className = room.className.replace(/bg-theme-\w+/g, '');
+      const matched = BACKGROUNDS.find(b => b.id === bgId);
+      if (matched) {
+        room.classList.add(matched.class);
+      } else {
+        room.classList.add('bg-theme-none');
+      }
+    }
+
+    function updateShopUI() {
+      document.getElementById('shopCoinDisplay').innerText = userState.coins.toLocaleString();
+      document.getElementById('shopBookProgress').innerText = `${userState.booksBought % 10}/10`;
+
+      // 집 버튼 상태
+      const houseBtn = document.getElementById('buyHouseBtn');
+      if (userState.hasHouse) {
+        houseBtn.innerText = "완공됨 (보유)";
+        houseBtn.disabled = true;
+        houseBtn.className = "bg-slate-300 text-slate-500 font-jua px-4 py-2 rounded-xl text-sm cursor-not-allowed";
+      } else {
+        houseBtn.innerText = "건축 (1000원)";
+        houseBtn.disabled = false;
+        houseBtn.className = "btn-3d bg-indigo-600 hover:bg-indigo-700 text-white font-jua px-4 py-2 rounded-xl text-sm";
+      }
+
+      // 배경 목록 렌더링
+      const bgContainer = document.getElementById('shopContent-background');
+      bgContainer.innerHTML = '';
+      BACKGROUNDS.forEach(bg => {
+        const isOwned = userState.unlockedBackgrounds.includes(bg.id);
+        const isEquipped = userState.equippedBackground === bg.id;
+
+        const card = document.createElement('div');
+        card.className = "p-3 rounded-2xl border flex items-center justify-between bg-white shadow-sm";
+        card.innerHTML = `
+          <div class="flex items-center gap-2">
+            <div class="w-10 h-10 rounded-xl ${bg.class} border shadow-inner"></div>
+            <div>
+              <div class="font-jua text-sm text-slate-800">${bg.name}</div>
+              <div class="text-xs font-bold text-slate-500">${isOwned ? (isEquipped ? '착용 중' : '보유 중') : '500원'}</div>
+            </div>
+          </div>
+          <button onclick="buyItem('background', '${bg.id}')" class="btn-3d text-xs font-jua px-3 py-1.5 rounded-xl ${
+            isEquipped ? 'bg-slate-200 text-slate-600 cursor-default' : (isOwned ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-indigo-600 text-white hover:bg-indigo-700')
+          }">
+            ${isEquipped ? '착용 중' : (isOwned ? '착용하기' : '구매 (500원)')}
+          </button>
+        `;
+        bgContainer.appendChild(card);
+      });
+
+      // 50종 장난감 렌더링
+      const toysGrid = document.getElementById('toysGridContainer');
+      toysGrid.innerHTML = '';
+      TOY_ITEMS.forEach(toy => {
+        const isOwned = userState.inventoryToys.includes(toy.id);
+        const itemCard = document.createElement('div');
+        itemCard.className = `p-2.5 rounded-xl border flex flex-col items-center justify-between text-center ${isOwned ? 'bg-slate-50 border-slate-200' : 'bg-white border-indigo-50 shadow-sm'}`;
+        itemCard.innerHTML = `
+          <div class="text-3xl mb-1">${toy.icon}</div>
+          <div class="font-jua text-xs text-slate-800 truncate w-full mb-1.5">${toy.name}</div>
+          <button onclick="buyItem('toy', '${toy.id}')" ${isOwned ? 'disabled' : ''} class="w-full text-xs font-jua py-1 rounded-lg ${
+            isOwned ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'btn-3d bg-sky-500 hover:bg-sky-600 text-white'
+          }">
+            ${isOwned ? '보유 중' : '100원'}
+          </button>
+        `;
+        toysGrid.appendChild(itemCard);
+      });
+    }
+
+    /* ==========================================================================
+       8. 보관함(인벤토리) 시스템
+       ========================================================================== */
+    function openInventoryModal() {
+      playSound('click');
+      const list = document.getElementById('inventoryList');
+      list.innerHTML = '';
+
+      if (userState.inventoryToys.length === 0) {
+        list.innerHTML = `
+          <div class="col-span-2 py-8 text-center text-slate-400 font-jua text-sm">
+            아직 구매한 장난감이 없어요!<br>상점에서 귀여운 장난감을 선물해보세요. 🎁
+          </div>
+        `;
+      } else {
+        userState.inventoryToys.forEach(toyId => {
+          const toy = TOY_ITEMS.find(t => t.id === toyId);
+          if (!toy) return;
+          const card = document.createElement('div');
+          card.className = "btn-3d bg-sky-50 hover:bg-sky-100 border border-sky-200 p-2.5 rounded-xl flex items-center gap-2 cursor-pointer";
+          card.onclick = () => playWithToy(toy);
+          card.innerHTML = `
+            <span class="text-2xl">${toy.icon}</span>
+            <span class="font-jua text-xs text-sky-900 truncate">${toy.name}</span>
+          `;
+          list.appendChild(card);
+        });
+      }
+
+      document.getElementById('inventoryModal').classList.remove('hidden');
+    }
+
+    function closeInventoryModal() {
+      playSound('click');
+      document.getElementById('inventoryModal').classList.add('hidden');
+    }
+
+    function playWithToy(toy) {
+      playSound('reward');
+      confetti({ particleCount: 20, spread: 35 });
+      document.getElementById('petSpeech').innerText = `${toy.name}(으)로 신나게 노는 중! 삐리릭! ${toy.icon}`;
+      closeInventoryModal();
+    }
+
+    /* ==========================================================================
+       9. 구글 스프레드시트 클라우드 연동 (PIN 저장/불러오기)
+       ========================================================================== */
+    function openPinModal() {
+      playSound('click');
+      document.getElementById('pinInput').value = userState.pin;
+      document.getElementById('pinModal').classList.remove('hidden');
+    }
+
+    function closePinModal() {
+      playSound('click');
+      document.getElementById('pinModal').classList.add('hidden');
+    }
+
+    async function confirmPin() {
+      const pin = document.getElementById('pinInput').value.trim();
+      if (!pin) {
+        showCustomAlert("PIN 입력", "PIN 번호를 입력해주세요!", "🔑");
+        return;
+      }
+      userState.pin = pin;
+      closePinModal();
+      await loadFromCloud(pin);
+    }
+
+    // 클라우드에서 데이터 불러오기 (GET)
+    async function loadFromCloud(pin) {
+      showCustomAlert("불러오는 중...", "구글 스프레드시트에서 데이터를 조회하고 있습니다. 잠시만 기다려주세요.", "⏳");
+      try {
+        const targetUrl = `${BACKEND_URL}?action=load&pin=${encodeURIComponent(pin)}`;
+        const res = await fetch(targetUrl);
+        const result = await res.json();
+
+        if (result.success) {
+          const d = result.data;
+          userState.coins = Number(d.coins) || 0;
+          userState.solvedCount = Number(d.solvedCount) || 0;
+          userState.sessionSolvedCount = userState.solvedCount % 30;
+          userState.level = Number(d.level) || 1;
+          userState.booksBought = Number(d.booksBought) || 0;
+          userState.startDate = d.startDate || userState.startDate;
+          userState.hasMedal = d.hasMedal === true;
+          userState.hasHouse = d.hasHouse === true;
+          userState.equippedBackground = d.equippedBackground || "none";
+          userState.unlockedBackgrounds = Array.isArray(d.unlockedBackgrounds) ? d.unlockedBackgrounds : ["none"];
+          userState.inventoryToys = Array.isArray(d.inventoryToys) ? d.inventoryToys : [];
+          userState.inventorySnacks = Number(d.inventorySnacks) || 0;
+          userState.petImageFile = d.petImageFile || "";
+
+          checkPetGrowth();
+          applyBackground(userState.equippedBackground);
+          updateUI();
+
+          showCustomAlert(
+            "불러오기 성공!",
+            result.exists
+              ? `[PIN: ${pin}] 님의 학습 및 로펫 정보를 정상적으로 불러왔습니다!`
+              : `[PIN: ${pin}] 신규 등록되었습니다. 새로운 모험을 시작합니다!`,
+            "✨"
+          );
+        } else {
+          showCustomAlert("불러오기 실패", result.message || "데이터를 가져오지 못했습니다.", "❌");
+        }
+      } catch (err) {
+        console.error(err);
+        showCustomAlert("통신 오류", "구글 시트 백엔드와 연결할 수 없습니다.\n인터넷 연결 및 배포 URL 권한을 확인해주세요.", "⚠️");
+      }
+    }
+
+    // 클라우드에 현재 상태 저장하기 (POST)
+    async function manualSave() {
+      if (!userState.pin) {
+        openPinModal();
+        return;
+      }
+      showCustomAlert("저장 중...", "현재 학습 정보와 로펫 상태를 구글 시트에 저장하고 있습니다.", "💾");
+
+      try {
+        const payload = {
+          action: "save",
+          data: {
+            pin: userState.pin,
+            coins: userState.coins,
+            solvedCount: userState.solvedCount,
+            level: userState.level,
+            booksBought: userState.booksBought,
+            startDate: userState.startDate,
+            hasMedal: userState.hasMedal,
+            hasHouse: userState.hasHouse,
+            equippedBackground: userState.equippedBackground,
+            unlockedBackgrounds: userState.unlockedBackgrounds,
+            inventoryToys: userState.inventoryToys,
+            inventorySnacks: userState.inventorySnacks,
+            petImageFile: userState.petImageFile
+          }
+        };
+
+        const res = await fetch(BACKEND_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          playSound('reward');
+          showCustomAlert("저장 완료!", `PIN [${userState.pin}]에 안전하게 저장되었습니다!`, "✅");
+        } else {
+          showCustomAlert("저장 실패", result.message || "저장 도중 오류가 발생했습니다.", "❌");
+        }
+      } catch (err) {
+        console.error(err);
+        showCustomAlert("통신 오류", "클라우드 저장 실패: 백엔드 상태를 점검해주세요.", "⚠️");
+      }
+    }
+
+    /* ==========================================================================
+       10. UI 갱신 및 커스텀 알림 모달
+       ========================================================================== */
+    function updateUI() {
+      // 상단 바
+      document.getElementById('displayPin').innerText = userState.pin || "미설정";
+      document.getElementById('coinDisplay').innerText = userState.coins.toLocaleString();
+      document.getElementById('sessionSolvedCount').innerText = userState.sessionSolvedCount;
+      const progressPercent = Math.min(100, (userState.sessionSolvedCount / 30) * 100);
+      document.getElementById('rewardProgressBar').style.width = `${progressPercent}%`;
+
+      // 푼 문제 통계
+      document.getElementById('totalSolvedDisplay').innerText = userState.solvedCount;
+
+      // 뱃지 및 인벤토리 카운트
+      document.getElementById('snackCountBadge').innerText = userState.inventorySnacks;
+      document.getElementById('toyCountBadge').innerText = userState.inventoryToys.length;
+
+      // 로펫 상태 정보
+      const levelNames = ["1단계 아기 로펫", "2단계 똑똑 로펫", "3단계 탐험 로펫", "4단계 마스터 로펫"];
+      document.getElementById('petLevelText').innerText = levelNames[userState.level - 1] || "4단계 마스터 로펫";
+
+      // 책 진행바 (10권 단위)
+      document.getElementById('booksBoughtCount').innerText = userState.booksBought % 10;
+      const bookPercent = ((userState.booksBought % 10) / 10) * 100;
+      document.getElementById('bookProgressBar').style.width = `${bookPercent}%`;
+
+      // 4단계 금메달 및 집
+      if (userState.hasMedal || userState.level >= 4) {
+        document.getElementById('headerMedalBadge').classList.remove('hidden');
+        document.getElementById('roomMedalIcon').classList.remove('hidden');
+      } else {
+        document.getElementById('headerMedalBadge').classList.add('hidden');
+        document.getElementById('roomMedalIcon').classList.add('hidden');
+      }
+
+      if (userState.hasHouse) {
+        document.getElementById('houseBadge').classList.remove('hidden');
+        document.getElementById('houseStructure').classList.remove('hidden');
+      } else {
+        document.getElementById('houseBadge').classList.add('hidden');
+        document.getElementById('houseStructure').classList.add('hidden');
+      }
+
+      // 깃허브 이미지 파일명 연동 처리 (향후 전달될 파일명이 있으면 img 노출, 없으면 귀여운 플레이스홀더 노출)
+      const imgElem = document.getElementById('petImg');
+      const svgElem = document.getElementById('petSvgPlaceholder');
+      if (userState.petImageFile && userState.petImageFile.trim().length > 0) {
+        imgElem.src = userState.petImageFile;
+        imgElem.classList.remove('hidden');
+        svgElem.classList.add('hidden');
+      } else {
+        imgElem.classList.add('hidden');
+        svgElem.classList.remove('hidden');
+      }
+    }
+
+    function showCustomAlert(title, message, icon = "📢") {
+      document.getElementById('alertIcon').innerText = icon;
+      document.getElementById('alertTitle').innerText = title;
+      document.getElementById('alertMessage').innerText = message;
+      document.getElementById('alertModal').classList.remove('hidden');
+    }
+
+    function closeAlertModal() {
+      playSound('click');
+      document.getElementById('alertModal').classList.add('hidden');
+    }
+
+    /* ==========================================================================
+       11. 앱 실행 초기화 (Window OnLoad)
+       ========================================================================== */
+    window.onload = function () {
+      // 첫 문제 생성
+      generateQuestion();
+      updateUI();
+
+      // 키보드 엔터 지원
+      document.getElementById('pinInput').addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') confirmPin();
+      });
+
+      // 오디오 컨텍스트 사용자 인터랙션 연결
+      document.body.addEventListener('click', () => {
+        if (!audioInitialized) initAudio();
+      }, { once: true });
+    };
+  </script>
+</body>
+</html>
