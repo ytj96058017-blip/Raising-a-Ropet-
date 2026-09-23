@@ -173,11 +173,15 @@
             💖 +10
           </div>
           
-          <!-- 로펫 깃허브 이미지 연동을 위한 Image 태그 (기본 숨김, 파일 설정 시 노출) -->
-          <img id="petImg" src="" alt="로펫" class="hidden w-40 h-40 object-contain drop-shadow-2xl"/>
+          <!-- 로펫 깃허브 이미지 (로딩 실패 시 단계별 폴백 및 SVG 자동 표시) -->
+          <img id="petImg" src="images/ropet.jpg" 
+               onerror="handleImageError(this)" 
+               onload="handleImageSuccess(this)" 
+               alt="로펫" 
+               class="w-40 h-40 object-contain drop-shadow-2xl transition-transform duration-300 rounded-3xl"/>
 
-          <!-- 깃허브 사진 연동 전 귀여운 스마트 로펫 SVG (레벨에 따라 크기/장식 진화) -->
-          <div id="petSvgPlaceholder" class="w-40 h-40 flex items-center justify-center filter drop-shadow-xl transition-transform duration-300">
+          <!-- 이미지 로딩 실패 시 대신 표시할 귀여운 스마트 로펫 SVG (엑박 방지) -->
+          <div id="petSvgPlaceholder" class="w-40 h-40 flex items-center justify-center filter drop-shadow-xl transition-transform duration-300 hidden">
             <svg viewBox="0 0 120 120" class="w-full h-full">
               <!-- 안테나 -->
               <line x1="60" y1="26" x2="60" y2="10" stroke="#6366f1" stroke-width="4" stroke-linecap="round"/>
@@ -194,7 +198,7 @@
               <!-- 모니터 페이스 -->
               <rect x="32" y="32" width="56" height="42" rx="12" fill="#1e1b4b"/>
               
-              <!-- 눈 (레벨에 따라 표정 변화) -->
+              <!-- 눈 -->
               <circle id="petEyeLeft" cx="48" cy="50" r="6" fill="#38bdf8"/>
               <circle id="petEyeRight" cx="72" cy="50" r="6" fill="#38bdf8"/>
               
@@ -216,6 +220,11 @@
               <ellipse cx="76" cy="110" rx="8" ry="5" fill="#4338ca"/>
             </svg>
           </div>
+
+          <!-- 사진 직접 등록/변경 버튼 -->
+          <button onclick="event.stopPropagation(); openPhotoUrlModal();" title="로펫 사진 주소 직접 설정" class="absolute -bottom-2 -right-2 bg-white/90 hover:bg-white text-indigo-700 shadow-md border border-indigo-200 rounded-full w-8 h-8 flex items-center justify-center text-xs transition-transform hover:scale-110">
+            <i class="fa-solid fa-camera"></i>
+          </button>
         </div>
 
         <p class="text-xs font-bold text-slate-600 mt-2 bg-white/70 px-3 py-1 rounded-full shadow-sm">
@@ -393,20 +402,42 @@
     </div>
   </div>
 
-  <!-- 보관함(인벤토리) 모달창 -->
-  <div id="inventoryModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-5 flex flex-col max-h-[85vh]">
-      <div class="flex items-center justify-between border-b pb-3 mb-3">
-        <h3 class="font-jua text-xl text-sky-800 flex items-center gap-2">
-          <i class="fa-solid fa-box-open"></i> 로펫의 장난감 상자
+  <!-- 시작 전 전체 화면 로그인 모달 (PIN 코드를 입력해야만 게임 입장 가능) -->
+  <div id="loginScreenModal" class="fixed inset-0 bg-slate-900/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-sm shadow-2xl p-6 text-center border-4 border-indigo-300 animate-in fade-in zoom-in-95 duration-200">
+      <div class="w-20 h-20 rounded-3xl bg-indigo-50 border-2 border-indigo-200 mx-auto mb-3 flex items-center justify-center overflow-hidden shadow-inner">
+        <img id="loginPetImg" src="images/ropet.jpg" onerror="this.style.display='none'; document.getElementById('loginPetSvg').classList.remove('hidden');" alt="로펫" class="w-16 h-16 object-contain">
+        <div id="loginPetSvg" class="hidden text-3xl">🤖</div>
+      </div>
+      <h2 class="font-jua text-2xl text-indigo-900 mb-1">로펫 수학 모험</h2>
+      <p class="text-xs font-bold text-slate-500 mb-4">시작할 PIN 코드를 입력해주세요!<br>(4자리 숫자 또는 나만의 암호)</p>
+      
+      <input type="text" id="loginPinInput" maxlength="10" placeholder="예: 2026" class="w-full text-center font-jua text-2xl tracking-widest py-3 border-2 border-indigo-300 rounded-2xl mb-3 focus:outline-none focus:border-indigo-600 uppercase bg-slate-50">
+      
+      <button onclick="startWithPin()" class="btn-3d w-full bg-gradient-to-r from-indigo-600 to-teal-500 hover:from-indigo-700 hover:to-teal-600 text-white font-jua py-3 rounded-2xl text-lg flex items-center justify-center gap-2 shadow-lg">
+        <i class="fa-solid fa-gamepad"></i> 모험 시작하기
+      </button>
+      <div class="text-[11px] text-slate-400 mt-3">기존 기록이 있으면 불러오고, 없으면 새로 시작합니다!</div>
+    </div>
+  </div>
+
+  <!-- 로펫 사진 주소 직접 변경 모달 -->
+  <div id="photoUrlModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-jua text-lg text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-camera text-indigo-600"></i> 로펫 사진 주소 설정
         </h3>
-        <button onclick="closeInventoryModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">&times;</button>
+        <button onclick="closePhotoUrlModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
       </div>
-      <div id="inventoryList" class="overflow-y-auto no-scrollbar flex-1 py-2 grid grid-cols-2 gap-2">
-        <!-- 보유 장난감 표시 -->
-      </div>
-      <div class="mt-4 pt-3 border-t text-center text-xs text-slate-500">
-        장난감을 누르면 로펫이 기뻐하며 소리를 냅니다!
+      <p class="text-xs text-slate-500 mb-3 leading-relaxed">
+        깃허브에 올린 <strong>이미지 주소(URL)</strong> 또는 <strong>상대 경로</strong>를 입력하면 즉시 로펫 사진이 변경됩니다.<br>
+        <span class="text-indigo-600 font-semibold">* 예: images/ropet.jpg 또는 깃허브 raw URL</span>
+      </p>
+      <input type="text" id="customPhotoUrlInput" placeholder="images/ropet.jpg" class="w-full px-3 py-2 text-sm border-2 border-indigo-200 rounded-xl mb-4 focus:outline-none focus:border-indigo-600">
+      <div class="flex gap-2">
+        <button onclick="closePhotoUrlModal()" class="btn-3d flex-1 bg-slate-100 text-slate-600 font-bold py-2 rounded-xl text-sm">취소</button>
+        <button onclick="applyCustomPhotoUrl()" class="btn-3d flex-1 bg-indigo-600 text-white font-jua py-2 rounded-xl text-sm">사진 적용</button>
       </div>
     </div>
   </div>
@@ -575,7 +606,7 @@
       unlockedBackgrounds: ["none"],
       inventoryToys: [],
       inventorySnacks: 0,
-      petImageFile: ""          // 깃허브 이미지 연동 시 여기에 파일명 지정
+      petImageFile: "images/ropet.jpg"          // 깃허브 이미지 연동
     };
 
     let currentQuestion = null;
@@ -964,6 +995,52 @@
     /* ==========================================================================
        6. 로펫 키우기 & 성장 & 애니메이션 시스템
        ========================================================================== */
+    // 이미지 로드 시도 경로 리스트 (상대경로 문제 해결을 위한 자동 시도)
+    const fallbackImagePaths = ['images/ropet.jpg', './images/ropet.jpg', 'ropet.jpg', './ropet.jpg'];
+    let currentPathIndex = 0;
+
+    function handleImageError(img) {
+      currentPathIndex++;
+      if (currentPathIndex < fallbackImagePaths.length) {
+        img.src = fallbackImagePaths[currentPathIndex];
+      } else {
+        // 모든 경로 실패 시 깨진 이미지 아이콘 숨기고 귀여운 SVG 로봇 노출
+        img.classList.add('hidden');
+        document.getElementById('petSvgPlaceholder').classList.remove('hidden');
+      }
+    }
+
+    function handleImageSuccess(img) {
+      img.classList.remove('hidden');
+      document.getElementById('petSvgPlaceholder').classList.add('hidden');
+    }
+
+    function openPhotoUrlModal() {
+      playSound('click');
+      document.getElementById('customPhotoUrlInput').value = userState.petImageFile || 'images/ropet.jpg';
+      document.getElementById('photoUrlModal').classList.remove('hidden');
+    }
+
+    function closePhotoUrlModal() {
+      playSound('click');
+      document.getElementById('photoUrlModal').classList.add('hidden');
+    }
+
+    function applyCustomPhotoUrl() {
+      const url = document.getElementById('customPhotoUrlInput').value.trim();
+      if (!url) return;
+      userState.petImageFile = url;
+      currentPathIndex = 999; // 수동 입력 시 자동 폴백 방지
+
+      const img = document.getElementById('petImg');
+      img.classList.remove('hidden');
+      document.getElementById('petSvgPlaceholder').classList.add('hidden');
+      img.src = url;
+
+      closePhotoUrlModal();
+      showCustomAlert("사진 반영 완료", "로펫의 사진 주소가 업데이트되었습니다!\n(저장하기 버튼을 누르면 클라우드에도 저장됩니다)", "📷");
+    }
+
     function checkPetGrowth() {
       // 1년(365일) 경과 시 1단계 자동 성장 보너스
       let dateBonusLevel = 0;
@@ -1007,27 +1084,19 @@
     }
 
     function triggerPetExpression(type) {
-      const mouth = document.getElementById('petMouth');
       const speech = document.getElementById('petSpeech');
-      const eyeL = document.getElementById('petEyeLeft');
-      const eyeR = document.getElementById('petEyeRight');
+      const petAvatar = document.getElementById('petAvatarContainer');
 
       if (type === 'happy') {
-        mouth.setAttribute('d', 'M 48 60 Q 60 76 72 60');
         speech.innerText = "와! 정답이에요! 최고예요! 💡";
-        eyeL.setAttribute('fill', '#34d399');
-        eyeR.setAttribute('fill', '#34d399');
+        petAvatar.classList.add('scale-110');
       } else if (type === 'sad') {
-        mouth.setAttribute('d', 'M 48 70 Q 60 58 72 70');
         speech.innerText = "조금만 더 생각해보면 맞힐 수 있어요! 힘내요! 💪";
-        eyeL.setAttribute('fill', '#fb7185');
-        eyeR.setAttribute('fill', '#fb7185');
+        petAvatar.classList.add('rotate-6');
       }
 
       setTimeout(() => {
-        mouth.setAttribute('d', 'M 52 64 Q 60 70 68 64');
-        eyeL.setAttribute('fill', '#38bdf8');
-        eyeR.setAttribute('fill', '#38bdf8');
+        petAvatar.classList.remove('scale-110', 'rotate-6');
         speech.innerText = "문제를 풀면 제가 더 똑똑해져요! 🤖";
       }, 1500);
     }
@@ -1304,6 +1373,18 @@
     /* ==========================================================================
        9. 구글 스프레드시트 클라우드 연동 (PIN 저장/불러오기)
        ========================================================================== */
+    async function startWithPin() {
+      const input = document.getElementById('loginPinInput').value.trim();
+      if (!input) {
+        showCustomAlert("PIN 입력", "시작할 PIN 코드를 입력해주세요!", "🔑");
+        return;
+      }
+      userState.pin = input;
+      document.getElementById('loginScreenModal').classList.add('hidden');
+      initAudio();
+      await loadFromCloud(input);
+    }
+
     function openPinModal() {
       playSound('click');
       document.getElementById('pinInput').value = userState.pin;
@@ -1461,16 +1542,12 @@
         document.getElementById('houseStructure').classList.add('hidden');
       }
 
-      // 깃허브 이미지 파일명 연동 처리 (향후 전달될 파일명이 있으면 img 노출, 없으면 귀여운 플레이스홀더 노출)
+      // 깃허브 ropet.jpg 이미지 연동 처리
       const imgElem = document.getElementById('petImg');
-      const svgElem = document.getElementById('petSvgPlaceholder');
-      if (userState.petImageFile && userState.petImageFile.trim().length > 0) {
-        imgElem.src = userState.petImageFile;
-        imgElem.classList.remove('hidden');
-        svgElem.classList.add('hidden');
-      } else {
-        imgElem.classList.add('hidden');
-        svgElem.classList.remove('hidden');
+      const targetSrc = userState.petImageFile || "images/ropet.jpg";
+      if (imgElem.getAttribute('src') !== targetSrc) {
+        currentPathIndex = 0;
+        imgElem.src = targetSrc;
       }
     }
 
@@ -1490,11 +1567,22 @@
        11. 앱 실행 초기화 (Window OnLoad)
        ========================================================================== */
     window.onload = function () {
-      // 첫 문제 생성
+      // 첫 문제 생성 및 UI 초기 설정
       generateQuestion();
       updateUI();
 
-      // 키보드 엔터 지원
+      // 시작 시 로그인 화면 띄우고 포커스
+      const loginModal = document.getElementById('loginScreenModal');
+      loginModal.classList.remove('hidden');
+      const loginInput = document.getElementById('loginPinInput');
+      loginInput.focus();
+
+      // 로그인 화면 엔터키 지원
+      loginInput.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') startWithPin();
+      });
+
+      // 기존 PIN 변경 모달 엔터키 지원
       document.getElementById('pinInput').addEventListener('keyup', (e) => {
         if (e.key === 'Enter') confirmPin();
       });
